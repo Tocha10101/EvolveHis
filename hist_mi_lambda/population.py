@@ -1,3 +1,9 @@
+"""
+    Author: Anton Masiukevich
+    Last modification data: 27.04.2020
+    Github: https://github.com/Tocha10101
+"""
+
 from random import randint
 import numpy
 from numpy.random import uniform, normal
