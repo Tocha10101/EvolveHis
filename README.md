@@ -7,7 +7,7 @@ Download all project files and open Linux Terminal in the main folder. Type and 
 ```bash
 gcc -fPIC -shared -lm -o cec17_test_func.so cec17_test_func.c
 ```
-This compiles a C file into cec17_test_func.so, which will be used by the Python wrapper function in cec17_function.py.
+This compiles a C file into *cec17_test_func.so*, which will be used by the Python wrapper function in *cec17_function.py*.
 
 Then, type
 ```bash
