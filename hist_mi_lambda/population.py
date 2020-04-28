@@ -1,3 +1,9 @@
+"""
+    Author: Anton Masiukevich
+    Last modification data: 27.04.2020
+    Github: https://github.com/Tocha10101
+"""
+
 from random import randint
 import numpy
 from numpy.random import uniform, normal
@@ -13,13 +19,13 @@ class Population():
         self.lambd = init_params['lambda']
         self.mu = init_params['mu']
         self.worst_ever = [self.individuals[-1]]
+        self.heur_available = init_params['heur_available']
+        self.function_num = init_params['function_num']
         self.pool = []
+        
     
     # a function that decides who lives and who dies
     def living_selector(self):
-        # the worst automatically gets the ticket to worst_ever
-        # the best automatically gets the ticket to new generation
-        # else: Roulette selection
 
         # copies population to pool
         self.pool = self.individuals.copy()
@@ -28,25 +34,25 @@ class Population():
         new_generation, best, worst = self.produce()
         self.pool += new_generation
 
-        self.pool.sort(reverse=True)
+        self.pool.sort()
 
-        self.worst_ever.append(worst)
+        self.worst_ever.append(worst)           # appends the worst offspring
 
         # drops current self.individuals
         self.individuals = []
         
-        self.individuals.append(self.pool[0]) # appends best of all the time
-        self.individuals.append(best)
+        self.individuals.append(self.pool[0])   # appends best of all the time
+        self.individuals.append(best)           # appends best among the offsprings
         self.pool.remove(best)
         self.pool.remove(worst)
 
         # the best of all the time remains only in individuals - no need to be chosen
-
         tickets = []
         for i in range(len(self.pool)):
             for j in range(len(self.pool) - i):
                 tickets.append(self.pool[i].pers_id)
         
+        # Only one permutation needed
         # make a better permutation here !!!!!
         for p in permutations(tickets):
             tickets = list(p)
@@ -66,37 +72,39 @@ class Population():
         #     if el in self.individuals:
         #         self.individuals.remove(el)
         self.individuals += chosen
-        self.individuals.sort(reverse=True)
+        self.individuals.sort()
 
+    # returns the best offspring (with MINIMUM value)
     def best_of_generation(self, offsprings):
         best = offsprings[0]
         for el in offsprings:
-            if el > best:
+            if el < best:
                 best = el
         return best
-        
+
     def all_time_best(self):
         return self.individuals[0]
 
-    def find_closest_worst(self, offspring1: Individual):
+    def find_closest_worst(self, ind_args):
         closest = self.worst_ever[0]
-        args = offspring1.arguments
         min_dist = float('inf')
         for worst in self.worst_ever:
-            # breakpoint()
-            dist = numpy.sqrt(sum([(offspring1.arguments[i] - worst.arguments[i]) ** 2 for i in range(len(worst.arguments))]))
+            dist = numpy.sqrt(sum([(ind_args[i] - worst.arguments[i]) ** 2 for i in range(len(worst.arguments))]))
             if dist < min_dist:
                 min_dist = dist
                 closest = worst
         return closest
 
-    # we do not sort, 'cause it's expensive  
+    # returns the worst offspring(with MAXIMUM value)
     def worst_of_generation(self, offsprings):
         worst = offsprings[0]
         for el in offsprings:
-            if el < worst:
+            if el > worst:
                 worst = el
         return worst
+
+    def euclid_dist(self, arguments):
+        return numpy.sqrt(sum([el ** 2 for el in arguments]))
 
     def produce(self):
         selected = self.selection()
@@ -104,22 +112,24 @@ class Population():
         offsprings = [] # r_population
         for mother, father in zip(mothers, fathers):
             # mutation here doesn't depend on chance
-            child1, child2 = self.mutation(*self.crossover(mother, father))
-            
-            child1.closest_worst = self.find_closest_worst(child1)
-            child2.closest_worst = self.find_closest_worst(child2)
-            
-            # altering the children
-            vect1 = [child1.arguments[i] - child1.closest_worst.arguments[i] for i in range(self.dim)]
-            vect2 = [child2.arguments[i] - child2.closest_worst.arguments[i] for i in range(self.dim)]
-            
-            learning_rate1, learning_rate2 = len(vect1) / 10 ** (self.dim), len(vect2) / 10 ** (self.dim)
-            child1.arguments = [child1.arguments[i] + vect1[i] * learning_rate1 for i in range(self.dim)]
-            child2.arguments = [child2.arguments[i] + vect2[i] * learning_rate2 for i in range(self.dim)]
-
-
-            child1.value = child1.fitness_func(child1.arguments)
-            child2.value = child2.fitness_func(child2.arguments)
+            child1_data, child2_data = self.mutation(*self.crossover(mother, father))
+            if self.heur_available:
+                child1_data['closest_worst'] = self.find_closest_worst(child1_data['arguments'])
+                child2_data['closest_worst'] = self.find_closest_worst(child2_data['arguments'])
+                
+                # altering the children
+                vect1 = [child1_data['arguments'][i] - child1_data['closest_worst'].arguments[i] for i in range(self.dim)]
+                vect2 = [child2_data['arguments'][i] - child2_data['closest_worst'].arguments[i] for i in range(self.dim)]
+                
+                learning_rate1, learning_rate2 = numpy.maximum(40 - self.euclid_dist(vect1), 0) / self.euclid_dist(vect1), numpy.maximum(40 - self.euclid_dist(vect2), 0) /self.euclid_dist(vect2)
+                child1_data['arguments'] = [child1_data['arguments'][i] + vect1[i] * learning_rate1 for i in range(self.dim)]
+                child2_data['arguments'] = [child2_data['arguments'][i] + vect2[i] * learning_rate2 for i in range(self.dim)]
+            else:
+                child1_data['closest_worst'] = None
+                child2_data['closest_worst'] = None
+            child1_data['function_num'] = self.function_num
+            child2_data['function_num'] = self.function_num
+            child1, child2 = Individual(child1_data), Individual(child2_data)
             offsprings.append(child1)
             offsprings.append(child2)
         return offsprings, self.best_of_generation(offsprings), self.worst_of_generation(offsprings)
@@ -132,7 +142,6 @@ class Population():
             el = self.individuals[randint(0, generated)]
             t_population.append(el)
             self.individuals.remove(el)
-                # print(f"Exception: {e}, iteration: {i}, generated: {generated}")
         return t_population
 
     # interpolation crossover
@@ -144,7 +153,7 @@ class Population():
         child2_sigmas = [a * father.sigmas[i] + (1 - a) * mother.sigmas[i] for i in range(len(mother.sigmas))]
         return (child1_args, child1_sigmas), (child2_args, child2_sigmas)
         
-
+    # standart mutation for mu + lambda
     def mutation(self, off1_data, off2_data):
         tau1 = 1 / numpy.sqrt(2 * self.dim)
         tau2 = 1 / numpy.sqrt(2 * numpy.sqrt(self.dim))
@@ -157,11 +166,11 @@ class Population():
 
         arguments1 = [off1_data[0][i] + unique1 * sigmas_r1[i] for i in range(len(off1_data[0]))]
         arguments2 = [off2_data[0][i] + unique1 * sigmas_r2[i] for i in range(len(off2_data[0]))]
-        return Individual({
+        return {
             'arguments': arguments1,
             'sigmas': off1_data[1]
-        }), Individual({
+        },  {
             'arguments': arguments2,
             'sigmas': off2_data[1]
-        })
+        }
         
