@@ -10,20 +10,23 @@ from numpy.random import uniform, normal
 from math import e
 from itertools import permutations
 from individual import Individual
+
 class Population():
     
     def __init__(self, init_params):
 
         self.dim = init_params['dim']
-        self.individuals = init_params['individuals']
         self.lambd = init_params['lambda']
         self.mu = init_params['mu']
-        self.worst_ever = [self.individuals[-1]]
-        self.heur_available = init_params['heur_available']
+
         self.function_num = init_params['function_num']
+        self.heur_available = init_params['heur_available']
+
+        self.individuals = self.generate_population()
+        self.worst_ever = [self.worst_of_generation(self.individuals)]
+
         self.pool = []
         
-    
     # a function that decides who lives and who dies
     def living_selector(self):
 
@@ -173,4 +176,22 @@ class Population():
             'arguments': arguments2,
             'sigmas': off2_data[1]
         }
-        
+
+    def generate_population(self):
+        individs = []
+        for i in range(self.mu):
+            arguments, sigmas = [], []
+            for j in range(self.dim):
+                # give it some use!!!
+                argument = uniform(-100, 100)
+                sigma = uniform(0, 25) 
+                arguments.append(argument)
+                sigmas.append(sigma)
+            individs.append( Individual({
+                'arguments': arguments,
+                'sigmas': sigmas,
+                'function_num': self.function_num,
+                'closest_worst': None
+                })
+            )
+        return individs

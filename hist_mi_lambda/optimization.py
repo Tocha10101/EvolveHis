@@ -1,41 +1,36 @@
 from numpy.random import uniform, normal
 from population import Population
 from individual import Individual
-from tests import Tests
 
 class Optimization():
 
     def __init__(self, init_params):
-        self.dim = init_params['dim']
-        self.mu = init_params['mu']
-        self.function_number = init_params['function_number']
-        Individual.fitness_function = Tests(self.function_number).function
 
         initial = {
-            'dim': self.dim,
+            'dim': init_params['dim'],
             'heur_available': init_params['heur_available'],
-            'individuals': self.generate_population(),
-            'lambda': init_params['lmbd'],
+            'lambda': init_params['lambd'],
             'mu': init_params['mu'],
-            'function_num': self.function_number
+            'function_num': init_params['function_num']
         }
         self.population = Population(initial)
+        self.generation_limit = init_params['generation_limit']
 
-    def generate_population(self):
-        individs = []
-        for i in range(self.mu):
-            arguments, sigmas = [], []
-            for j in range(self.dim):
-                # give it some use!!!
-                argument = uniform(-100, 100)
-                sigma = uniform(0, 25) 
-                arguments.append(argument)
-                sigmas.append(sigma)
-            individs.append( Individual({
-                'arguments': arguments,
-                'sigmas': sigmas,
-                'function_num': self.function_number,
-                'closest_worst': None
-                })
-            )
-        return individs
+
+    def main(self):
+
+        best = self.population.all_time_best()
+        generation = 0
+
+        while generation < self.generation_limit:
+            
+            self.population.living_selector()
+
+            best = self.population.all_time_best()
+            
+            print(f"Generation {generation}. Best: {best}")
+            generation += 1
+
+        all_times_best = self.population.all_time_best()
+        
+        print(f"\n\nConverged with individual\nID: {all_times_best.pers_id}\nArguments: {all_times_best.arguments}\nValue: {all_times_best.value}")

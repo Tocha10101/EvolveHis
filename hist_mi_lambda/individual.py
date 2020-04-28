@@ -9,7 +9,6 @@ from cec17_functions import cec17_test_func
 class Individual():
 
     individ_id = 0
-    # fitness_function = None
     def __init__(self, init_params=None):
         self.arguments = init_params['arguments']
         self.sigmas = init_params['sigmas']
@@ -17,7 +16,7 @@ class Individual():
         self.pers_id = Individual.individ_id
         self.function_num = init_params['function_num']
         self.value = self.calc_fitness()
-        self.closest_worst = init_params['closest_worst']           # think about better initialization
+        self.closest_worst = init_params['closest_worst']
 
     def __repr__(self):
         return f"ID: {self.pers_id}, value: {self.value}\narguments: {self.arguments}"
