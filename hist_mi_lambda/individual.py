@@ -28,3 +28,17 @@ class Individual():
         fitness_ptr = [0]
         cec17_test_func(self.arguments, fitness_ptr, len(self.arguments), 1, self.function_num)
         return fitness_ptr[0]
+
+    def toDict(self):
+
+        individ_data = {
+            'id': self.pers_id,
+            'arguments': self.arguments,
+            'sigmas': self.sigmas,
+            'value': self.value,
+        }
+        if self.closest_worst:
+            individ_data['closest_worst_id'] = self.closest_worst.pers_id
+        else:
+             individ_data['closest_worst_id'] = -1
+        return individ_data

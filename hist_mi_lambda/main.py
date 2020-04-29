@@ -47,8 +47,12 @@ if __name__ == '__main__':
         'lambd': args.lambd,
         'function_num': args.function,
         'generation_limit': args.success_mark,
-        'heur_available': args.train_heuristic
+        'heur_available': args.train_heuristic,
+        'starting_generation': 0
     }
 
     optimization = Optimization(inits)
+    optimization.main()
+
+    read_data = optimization.restore_data('data.json')
     optimization.main()

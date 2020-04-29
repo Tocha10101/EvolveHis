@@ -23,8 +23,8 @@ class Population():
         self.heur_available = init_params['heur_available']
 
         self.individuals = self.generate_population()
-        self.worst_ever = [self.worst_of_generation(self.individuals)]
-
+        self.worst_ever = [self.get_worst(self.individuals)]
+        # self.best_ever = self.all_time_best()
         self.pool = []
         
     # a function that decides who lives and who dies
@@ -37,6 +37,8 @@ class Population():
         new_generation, best, worst = self.produce()
         self.pool += new_generation
 
+        # self.best_ever = self.all_time_best()
+
         self.pool.sort()
 
         self.worst_ever.append(worst)           # appends the worst offspring
@@ -44,8 +46,9 @@ class Population():
         # drops current self.individuals
         self.individuals = []
         
-        self.individuals.append(self.pool[0])   # appends best of all the time
+        self.individuals.append(self.pool[0])      # appends best of all the time
         self.individuals.append(best)           # appends best among the offsprings
+        # self.pool.remove(self.best_ever)
         self.pool.remove(best)
         self.pool.remove(worst)
 
@@ -77,16 +80,19 @@ class Population():
         self.individuals += chosen
         self.individuals.sort()
 
-    # returns the best offspring (with MINIMUM value)
-    def best_of_generation(self, offsprings):
-        best = offsprings[0]
-        for el in offsprings:
+
+    def get_best(self, individs: list):
+        best = individs[0]
+        for el in individs:
             if el < best:
                 best = el
         return best
-
-    def all_time_best(self):
-        return self.individuals[0]
+    
+    def all_time_best(self) -> Individual:
+        return self.individuals[0] # self.get_best(self.individuals)
+    
+    def get_all_time_worst(self) -> Individual:
+        return self.get_worst(self.worst_ever)
 
     def find_closest_worst(self, ind_args):
         closest = self.worst_ever[0]
@@ -98,18 +104,17 @@ class Population():
                 closest = worst
         return closest
 
-    # returns the worst offspring(with MAXIMUM value)
-    def worst_of_generation(self, offsprings):
-        worst = offsprings[0]
-        for el in offsprings:
+    def get_worst(self, individs: list) -> Individual:
+        worst = individs[0]
+        for el in individs:
             if el > worst:
                 worst = el
         return worst
 
-    def euclid_dist(self, arguments):
+    def euclid_dist(self, arguments: list) -> float:
         return numpy.sqrt(sum([el ** 2 for el in arguments]))
 
-    def produce(self):
+    def produce(self) -> (list, Individual, Individual):
         selected = self.selection()
         mothers, fathers = selected[::2], selected[1::2]
         offsprings = [] # r_population
@@ -135,7 +140,7 @@ class Population():
             child1, child2 = Individual(child1_data), Individual(child2_data)
             offsprings.append(child1)
             offsprings.append(child2)
-        return offsprings, self.best_of_generation(offsprings), self.worst_of_generation(offsprings)
+        return offsprings, self.get_best(offsprings), self.get_worst(offsprings)
 
 
     def selection(self):
