@@ -24,7 +24,7 @@ class Population():
 
         self.individuals = self.generate_population()
         self.worst_ever = [self.get_worst(self.individuals)]
-        # self.best_ever = self.all_time_best()
+        self.best_ever = self.all_time_best()
         self.pool = []
         
     # a function that decides who lives and who dies
@@ -58,11 +58,7 @@ class Population():
             for j in range(len(self.pool) - i):
                 tickets.append(self.pool[i].pers_id)
         
-        # Only one permutation needed
-        # make a better permutation here !!!!!
-        for p in permutations(tickets):
-            tickets = list(p)
-            break
+        numpy.random.shuffle(tickets)
 
         chosen = []
         for i in range(self.mu - 2):
@@ -129,7 +125,12 @@ class Population():
                 vect1 = [child1_data['arguments'][i] - child1_data['closest_worst'].arguments[i] for i in range(self.dim)]
                 vect2 = [child2_data['arguments'][i] - child2_data['closest_worst'].arguments[i] for i in range(self.dim)]
                 
-                learning_rate1, learning_rate2 = numpy.maximum(40 - self.euclid_dist(vect1), 0) / self.euclid_dist(vect1), numpy.maximum(40 - self.euclid_dist(vect2), 0) /self.euclid_dist(vect2)
+                all_time_worst = self.get_worst(self.individuals)
+
+                learning_rate1 = 40 * (self.best_ever.value - child1_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (self.euclid_dist(vect1) + 1) ** 2) * self.euclid_dist(vect1))
+                
+                learning_rate2 = 40 * (self.best_ever.value - child2_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (self.euclid_dist(vect2) + 1) ** 2) * self.euclid_dist(vect2))
+                
                 child1_data['arguments'] = [child1_data['arguments'][i] + vect1[i] * learning_rate1 for i in range(self.dim)]
                 child2_data['arguments'] = [child2_data['arguments'][i] + vect2[i] * learning_rate2 for i in range(self.dim)]
             else:
@@ -183,13 +184,16 @@ class Population():
         }
 
     def generate_population(self):
+
+        dim_offset = [j + 1 for j in range(self.dim)]
+        numpy.random.shuffle(dim_offset)
         individs = []
         for i in range(self.mu):
             arguments, sigmas = [], []
             for j in range(self.dim):
-                # give it some use!!!
-                argument = uniform(-100, 100)
-                sigma = uniform(0, 25) 
+                lower, upper = (i * dim_offset[j] % self.mu) * (200 / self.mu), (i * dim_offset[j] % self.mu + 1) * (200 / self.mu)
+                argument = uniform(upper, lower)
+                sigma = uniform(0, 25)
                 arguments.append(argument)
                 sigmas.append(sigma)
             individs.append( Individual({
