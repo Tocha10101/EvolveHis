@@ -43,15 +43,18 @@ class Population():
 
         # drops current self.individuals
         self.individuals = []
-        
-         # appends best among the offsprings and best ever
+        num_to_the_next = self.mu - 1
+        # appends best among the offsprings and best ever
         if best is not self.pool[0]:
-
+            num_to_the_next = self.mu - 2
             self.individuals.append(best)
             self.pool.remove(best)
             
         self.individuals.append(self.pool[0])
         self.pool.remove(self.pool[0])        # appends best among the offsprings
+
+        self.best_ever = self.pool[0]
+        
 
         # the best of all the time remains only in individuals - no need to be chosen
         tickets = []
@@ -62,7 +65,7 @@ class Population():
         numpy.random.shuffle(tickets)
 
         chosen = []
-        for i in range(self.mu - 2):
+        for i in range(num_to_the_next):
             index = randint(0, len(tickets) - 1)
             for el in self.pool:
                 if el.pers_id == tickets[index]:
@@ -75,7 +78,7 @@ class Population():
         self.individuals.sort()
 
 
-    def get_best(self, individs: list):
+    def get_best(self, individs):   
         best = individs[0]
         for el in individs:
             if el < best:
@@ -95,7 +98,7 @@ class Population():
                 closest = worst
         return closest
 
-    def get_worst(self, individs: list) -> Individual:
+    def get_worst(self, individs=[]):
         worst = individs[0]
         for el in individs:
             if el > worst:
@@ -122,10 +125,17 @@ class Population():
                 
                 all_time_worst = self.get_worst(self.worst_ever)
 
-                learning_rate1 = 40 * (self.best_ever.value - child1_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (self.euclid_dist(vect1) + 1) ** 2) * self.euclid_dist(vect1))
+                dist1 = self.euclid_dist(vect1)
+                dist2 = self.euclid_dist(vect2)
+
+                # breakpoint()
+                assert dist1 != 0, 'Dist1 is zero'
+                assert dist2 != 0, 'Dist2 is zero'
+
+                learning_rate1 = 40 * (self.best_ever.value - child1_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (dist1 + 1) ** 2) * dist1)
                 
-                learning_rate2 = 40 * (self.best_ever.value - child2_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (self.euclid_dist(vect2) + 1) ** 2) * self.euclid_dist(vect2))
-                
+                learning_rate2 = 40 * (self.best_ever.value - child2_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (dist2 + 1) ** 2) * dist2)
+
                 child1_data['arguments'] = [child1_data['arguments'][i] + vect1[i] * learning_rate1 for i in range(self.dim)]
                 child2_data['arguments'] = [child2_data['arguments'][i] + vect2[i] * learning_rate2 for i in range(self.dim)]
             else:
@@ -133,10 +143,12 @@ class Population():
                 child2_data['closest_worst'] = None
             child1_data['function_num'] = self.function_num
             child2_data['function_num'] = self.function_num
+            
             child1, child2 = Individual(child1_data), Individual(child2_data)
             offsprings.append(child1)
             offsprings.append(child2)
-        return offsprings, self.get_best(offsprings), self.get_worst(offsprings)
+        best_of_generation, worst_of_generation = self.get_best(offsprings), self.get_worst(offsprings)
+        return offsprings, best_of_generation, worst_of_generation
 
 
     def selection(self):
@@ -198,4 +210,5 @@ class Population():
                 'closest_worst': None
                 })
             )
+        individs.sort()
         return individs
