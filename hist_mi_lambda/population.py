@@ -191,7 +191,7 @@ class Population():
         }
 
     def generate_population(self):
-
+        Individual.individ_id = 0
         dim_offset = [j + 1 for j in range(self.dim)]
         numpy.random.shuffle(dim_offset)
         individs = []
