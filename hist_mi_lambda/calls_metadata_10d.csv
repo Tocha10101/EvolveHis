@@ -1,0 +1,13 @@
+Function name,Function num,Mu,Lambda,Generations,Heuristic,Dim
+rosenbrock,4,20,4,1000,False,10
+rosenbrock,4,200,128,500,False,10
+rosenbrock,4,20,4,1000,True,10
+rosenbrock,4,200,128,500,True,10
+schaffer_F7,6,20,4,1000,False,10
+schaffer_F7,6,200,128,500,False,10
+schaffer_F7,6,20,4,1000,True,10
+schaffer_F7,6,200,128,500,True,10
+levy,9,20,4,1000,False,10
+levy,9,200,128,500,False,10
+levy,9,20,4,1000,True,10
+levy,9,200,128,500,True,10
