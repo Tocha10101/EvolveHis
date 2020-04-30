@@ -29,6 +29,12 @@ class Individual():
         cec17_test_func(self.arguments, fitness_ptr, len(self.arguments), 1, self.function_num)
         return fitness_ptr[0]
 
+    def describe(self):
+        return {
+            'value': self.value,
+            'arguments': self.arguments
+        }
+
     def toDict(self):
 
         individ_data = {

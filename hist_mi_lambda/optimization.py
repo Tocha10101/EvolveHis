@@ -2,20 +2,21 @@ from numpy.random import uniform, normal
 from population import Population
 from individual import Individual
 import json
+import time
 
 class Optimization():
 
     def __init__(self, init_params):
 
         self.dim = init_params['dim']
-        self.lambd = init_params['lambd']
+        self.lambd = init_params['lambda']
         self.mu = init_params['mu']
         self.function_num = init_params['function_num']
 
         initial = {
             'dim': init_params['dim'],
             'heur_available': init_params['heur_available'],
-            'lambda': init_params['lambd'],
+            'lambda': init_params['lambda'],
             'mu': init_params['mu'],
             'function_num': init_params['function_num']
         }
@@ -28,19 +29,30 @@ class Optimization():
 
         best = self.population.all_time_best()
         # now we can start from
+        previous_best = None
+        change_iteration = self.current_generation
+        tic = time.perf_counter()
         while  self.current_generation  < self.generation_limit:
             
             self.population.living_selector()
 
             best = self.population.all_time_best()
+
+            if best is previous_best:
+                change_iteration += 1
+            else:
+                previous_best = best
+                change_iteration = 0
             
             print(f"Generation {self.current_generation}. Best: {best}")
              
-            self.current_generation += 1
+            self.current_generation += 1    
 
+        toc = time.perf_counter()
         all_times_best = self.population.all_time_best()
         
         print(f"\n\nConverged with individual\nID: {all_times_best.pers_id}\nArguments: {all_times_best.arguments}\nValue: {all_times_best.value}")
+        return all_times_best, toc - tic, change_iteration
 
     def save_data(self, json_filename):
         data = {

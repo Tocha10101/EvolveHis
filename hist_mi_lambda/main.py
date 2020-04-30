@@ -38,13 +38,11 @@ parser.add_argument('-mu', '--mu', action='store', type=int, default=200, help='
 
 args = parser.parse_args()
 
-
-
 if __name__ == '__main__':
     inits = {
         'dim': args.dimension,
         'mu': args.mu,
-        'lambd': args.lambd,
+        'lambda': args.lambd,
         'function_num': args.function,
         'generation_limit': args.success_mark,
         'heur_available': args.train_heuristic,

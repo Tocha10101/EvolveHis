@@ -37,20 +37,21 @@ class Population():
         new_generation, best, worst = self.produce()
         self.pool += new_generation
 
-        # self.best_ever = self.all_time_best()
-
         self.pool.sort()
-
-        self.worst_ever.append(worst)           # appends the worst offspring
+        self.worst_ever.append(worst)          # appends the worst offspring
+        self.pool.remove(worst)
 
         # drops current self.individuals
         self.individuals = []
         
-        self.individuals.append(self.pool[0])      # appends best of all the time
-        self.individuals.append(best)           # appends best among the offsprings
-        # self.pool.remove(self.best_ever)
-        self.pool.remove(best)
-        self.pool.remove(worst)
+         # appends best among the offsprings and best ever
+        if best is not self.pool[0]:
+
+            self.individuals.append(best)
+            self.pool.remove(best)
+            
+        self.individuals.append(self.pool[0])
+        self.pool.remove(self.pool[0])        # appends best among the offsprings
 
         # the best of all the time remains only in individuals - no need to be chosen
         tickets = []
@@ -69,10 +70,7 @@ class Population():
                     break
             # remove all the used tickets
             tickets = list(filter((tickets[index]).__ne__, tickets))
-        
-        # for el in self.pool:
-        #     if el in self.individuals:
-        #         self.individuals.remove(el)
+
         self.individuals += chosen
         self.individuals.sort()
 
@@ -85,10 +83,7 @@ class Population():
         return best
     
     def all_time_best(self) -> Individual:
-        return self.individuals[0] # self.get_best(self.individuals)
-    
-    def get_all_time_worst(self) -> Individual:
-        return self.get_worst(self.worst_ever)
+        return self.individuals[0]
 
     def find_closest_worst(self, ind_args):
         closest = self.worst_ever[0]
@@ -125,7 +120,7 @@ class Population():
                 vect1 = [child1_data['arguments'][i] - child1_data['closest_worst'].arguments[i] for i in range(self.dim)]
                 vect2 = [child2_data['arguments'][i] - child2_data['closest_worst'].arguments[i] for i in range(self.dim)]
                 
-                all_time_worst = self.get_worst(self.individuals)
+                all_time_worst = self.get_worst(self.worst_ever)
 
                 learning_rate1 = 40 * (self.best_ever.value - child1_data['closest_worst'].value) / (((self.best_ever.value - all_time_worst.value) * (self.euclid_dist(vect1) + 1) ** 2) * self.euclid_dist(vect1))
                 
@@ -191,7 +186,7 @@ class Population():
         for i in range(self.mu):
             arguments, sigmas = [], []
             for j in range(self.dim):
-                lower, upper = (i * dim_offset[j] % self.mu) * (200 / self.mu), (i * dim_offset[j] % self.mu + 1) * (200 / self.mu)
+                lower, upper = (i * dim_offset[j] % self.mu) * (200 / self.mu) - 100, (i * dim_offset[j] % self.mu + 1) * (200 / self.mu) - 100
                 argument = uniform(upper, lower)
                 sigma = uniform(0, 25)
                 arguments.append(argument)
