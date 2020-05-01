@@ -3,7 +3,9 @@ from csv import DictReader, DictWriter
 
 optimization = None
 
-def test_drive():
+input_filename = "calls_metadata_2d.csv"
+output_filename = "result_data2d.csv"
+def test_drive(input_file, output_file):
     with open('calls_metadata_2d.csv', 'r') as csv_read, open('result_data.csv', 'w', newline='') as csv_write:
         csv_reader = DictReader(csv_read, delimiter=',')
         fieldnames = [item for item in csv_reader.fieldnames]
@@ -39,4 +41,4 @@ def test_drive():
                 })
 
 
-test_drive()
+test_drive(input_filename, output_filename)
