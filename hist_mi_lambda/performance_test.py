@@ -19,7 +19,7 @@ def test_drive():
                 'mu': int(row['Mu']),
                 'lambda': int(row['Lambda']),
                 'function_num': int(row['Function num']),
-                'heur_available': bool(row['Heuristic']),
+                'heur_available': row['Heuristic'],
                 'generation_limit': int(row['Generations']),
                 'starting_generation': 0
             }
