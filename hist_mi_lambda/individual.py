@@ -1,9 +1,3 @@
-"""
-    Author: Anton Masiukevich
-    Date of last modification: 27.04.2020
-    Github: https://github.com/Tocha10101
-"""
-
 from cec17_functions import cec17_test_func
 
 class Individual():
